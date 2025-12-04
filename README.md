@@ -46,8 +46,8 @@ graph TD
 ```
 
 ## 参考
-- [基本プロジェクト/RGB LED](https://docs.sunfounder.com/projects/elite-explorer-kit/ja/latest/basic_projects/11_basic_rgb_led.html)
-- [基本プロジェクト/WS2812 RGB LEDストリップ](https://docs.sunfounder.com/projects/elite-explorer-kit/ja/latest/basic_projects/12_basic_ws2812.html#basic-ws2812)
-- [基本プロジェクト/キーパッド](https://docs.sunfounder.com/projects/elite-explorer-kit/ja/latest/basic_projects/21_basic_keypad.html)
+- [【Arduino】シリアルLED（WS2812B）を制御する](https://araisun.com/arduino-serial-led.html) 
+- [ArduinoでAD入力値をFFTしてスペクトル分析＆表示をするチャレンジ](https://qiita.com/moppii/items/e5fb2407f4bae3e95c4a)
+- [ErriezTM1637ライブラリ](https://github.com/Erriez/ErriezTM1637)
 - [MP3 再生ユニットを作ってみる（Arduino使用）](https://diy-kousaku.com/p-10196/)
-- [Arduino FFT Audio Spectrum analyzer on 8x32 color matrix WS2812B](https://projecthub.arduino.cc/mircemk/arduino-fft-audio-spectrum-analyzer-on-8x32-color-matrix-ws2812b-e07b35)
+
