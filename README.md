@@ -45,7 +45,11 @@ graph TD
 ```
 
 ## 参考
-- [【Arduino】シリアルLED（WS2812B）を制御する](https://araisun.com/arduino-serial-led.html) 
+
+(空行)
+https://araisun.com/arduino-serial-led.html
+(空行)
+
 - [ArduinoでAD入力値をFFTしてスペクトル分析＆表示をするチャレンジ](https://qiita.com/moppii/items/e5fb2407f4bae3e95c4a)
 - [ErriezTM1637ライブラリ](https://github.com/Erriez/ErriezTM1637)
 - [MP3 再生ユニットを作ってみる（Arduino使用）](https://diy-kousaku.com/p-10196/)
