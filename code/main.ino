@@ -3,7 +3,7 @@ import processing.sound.*;
 
 AudioIn in;
 FFT fft;
-int bands = 8;
+int bands = 16;
 float[] spectrum = new float[bands];
 Serial myPort;
 
@@ -15,7 +15,7 @@ void setup() {
   fft.input(in);
 
   printArray(Serial.list());
-  myPort = new Serial(this, Serial.list()[2], 9600); // ← ポート番号を確認！
+  myPort = new Serial(this, Serial.list()[2], 9600); 
 }
 
 void draw() {
@@ -25,7 +25,7 @@ void draw() {
   // データを文字列に変換して送信（超スケーリング）
   String data = "";
   for (int i = 0; i < bands; i++) {
-    int level = int(spectrum[i] * 1200); // 超敏感に反応！
+    int level = int(spectrum[i] * 1200);  
     level = constrain(level, 0, 255);
     data += level;
     if (i < bands - 1) data += ",";
@@ -38,5 +38,5 @@ void draw() {
     rect(i * (width / bands), height - h, width / bands, h);
   }
 
-  delay(30); // 少し速めに
+  delay(30);
 }
