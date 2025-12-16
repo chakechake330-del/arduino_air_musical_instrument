@@ -1,6 +1,6 @@
 # 卒業制作2025
 ## 1. 概要 
-超音波モジュール + DAW(Logic Pro) + RGB LEDマトリクスを使ったジェスチャー型MIDIコントローラー
+超音波モジュール + DAW(Logic Pro) + RGB LEDマトリクスを使ったAirBeat
 
 ### *主な機能*
 
