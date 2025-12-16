@@ -112,6 +112,7 @@ BlackHoleは、macOS用の仮想オーディオドライバです。
 
 ## 5. 参考サイト
 
+- [基本プロジェクト 超音波](https://docs.sunfounder.com/projects/elite-explorer-kit/ja/latest/basic_projects/06_basic_ultrasonic_sensor.html)
 - [【Arduino】シリアルLED（WS2812B）を制御する](https://araisun.com/arduino-serial-led.html)
 - [ArduinoでFFT解析し、ピークの周波数を検出する](https://qiita.com/ricelectric/items/98a6d32b1bcfca598762)
 - [arduinoとprocessingの連携手順](https://note.com/nakariho/n/n92611b3c0046)
