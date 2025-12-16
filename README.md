@@ -103,12 +103,12 @@ Processingは、ビジュアル表現に特化したJavaベースのプログラ
 
 ### **BlackHole**（https://existential.audio/blackhole/）  
 BlackHoleは、macOS用の仮想オーディオドライバです。  
-通常、アプリの音声はスピーカーに直接送られますが、BlackHoleを使うことで、**その音声を別のアプリ（この場合はProcessing）に受け渡すことができます。**  
-このプロジェクトでは、**Logic Proで鳴った音をProcessingに届ける“音の受け渡し役”としてBlackHoleを使用しています。**
+通常、アプリの音声はスピーカーに直接送られますが、BlackHoleを使うことで、その音声を別のアプリ（この場合はProcessing）に受け渡すことができます。 
+このプロジェクトでは、Logic Proで鳴った音をProcessingに届ける“音の受け渡し役”としてBlackHoleを使用しています。
 
 
 ### **Audio MIDI設定（IACドライバ）**（macOS標準機能）  
-仮想MIDIポートを作成・管理するためのmacOS標準ツール。Hairless MIDIとLogic Proを接続するために使用。
+仮想MIDIポートを作成・管理するためのmacOS標準ツールです。Hairless MIDIとLogic Proを接続するために使用しています。
 
 
 ## 5. 参考サイト
