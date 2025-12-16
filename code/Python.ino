@@ -1,10 +1,12 @@
 import serial
 import mido
 
-# ==== 環境に応じて設定してください ====
+# `SERIAL_PORT` と `MIDI_PORT_NAME` は環境に応じて設定してください。
+#  `SERIAL_PORT`：Arduinoが接続されているシリアルポート名（例: `/dev/tty.usbmodem14101`）
+#  `MIDI_PORT_NAME`：Audio MIDI設定で作成したIAC Driverのポート名（例: `IAC Driver バス 1`）
+    
 SERIAL_PORT = 'ここにシリアルポート名を入力（例: /dev/tty.usbmodemXXXX）'
 MIDI_PORT_NAME = 'ここにMIDIポート名を入力（例: IAC Driver バス 1）'
-# =====================================
 
 BAUD_RATE = 115200
 
@@ -27,7 +29,6 @@ while True:
         elif line == 'PAD1_OFF':
             midi_out.send(mido.Message('note_off', note=60, velocity=0))
 
-        # 必要に応じて他のパッドやノート番号も追加可能
 
     except KeyboardInterrupt:
         print("終了します")
