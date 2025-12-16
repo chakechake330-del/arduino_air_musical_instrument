@@ -2,8 +2,8 @@ import serial
 import mido
 
 # `SERIAL_PORT` と `MIDI_PORT_NAME` は環境に応じて設定してください。
-#  `SERIAL_PORT`：Arduinoが接続されているシリアルポート名（例: `/dev/tty.usbmodem14101`）
-#  `MIDI_PORT_NAME`：Audio MIDI設定で作成したIAC Driverのポート名（例: `IAC Driver バス 1`）
+#  `SERIAL_PORT`：Arduinoが接続されているシリアルポート名
+#  `MIDI_PORT_NAME`：Audio MIDI設定で作成したIAC Driverのポート名
     
 SERIAL_PORT = 'ここにシリアルポート名を入力（例: /dev/tty.usbmodemXXXX）'
 MIDI_PORT_NAME = 'ここにMIDIポート名を入力（例: IAC Driver バス 1）'
