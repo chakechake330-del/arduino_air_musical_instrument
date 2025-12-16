@@ -33,11 +33,11 @@
 > ※この配線図はFritzingの都合により、以下の部品を代用品で表現しています
 > - LEDマトリクス：実際には8×32のWS2812Bマトリクス（データピン：D6）を使用
 
-![]()
+![配線図](images_and_videos/Arduino_drum_配線図.png)
 
 ### *回路図*
 
-![]()
+![回路図](images_and_videos/Arduino_drum_回路図.png)
 
 ### *使用モジュールとピン*
 
