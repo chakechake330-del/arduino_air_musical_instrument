@@ -1,140 +1,111 @@
-#include <Adafruit_NeoPixel.h>  // LED制御ライブラリ
-#include <NewPing.h>            // 超音波センサー用ライブラリ
-#include "MIDI.h"              // MIDI送信用ライブラリ
+#include <FastLED.h>
 
-#define MIDI_CHANNEL_1 1
+#define NUM_LEDS 32           // LEDの数（Processingのbandsと合わせる）
+#define DATA_PIN 6            // LEDのデータピン
 
-// --- LEDマトリクス設定 ---
-#define LED_PIN 6                   // LEDデータピン
-#define NUM_PIXELS 512          // LEDの総数（16列 × 32段）
-#define BRIGHTNESS 80           // 明るさ（0〜255）
+#define TRIG_PIN 9            // 超音波センサーのTRIGピン
+#define ECHO_PIN 10           // 超音波センサーのECHOピン
 
-Adafruit_NeoPixel strip(NUM_PIXELS, LED_PIN, NEO_GRB + NEO_KHZ800);
+CRGB leds[NUM_LEDS];
 
-// --- 超音波センサー設定 ---
-#define TRIG_PIN 9
-#define ECHO_PIN 10
-#define MAX_DISTANCE 30         // 測定最大距離（cm）
+String inputString = "";
+bool receiving = false;
 
-NewPing sonar(TRIG_PIN, ECHO_PIN, MAX_DISTANCE);
+unsigned long lastNoteTime = 0;
+bool noteOnSent = false;
+byte currentNote = 0;
 
-// --- MIDI設定 ---
-MIDI_CREATE_DEFAULT_INSTANCE(); // デフォルトMIDIインスタンス作成
-
-// --- FFTデータ受信用 ---
-String input = "";              // シリアルからの受信バッファ
-int levels[16];                 // 各バンドのLED高さ（0〜32）
-
-// --- 超音波MIDI制御用 ---
-int lastNote = -1;              // 前回送信したノート番号
-unsigned long lastPingTime = 0;
-const unsigned long pingInterval = 100; // 測定間隔（ms）
+long lastDistance = 0;  // 前回の距離を記録
 
 void setup() {
-  Serial.begin(115200);         // シリアル通信（Processingと同じボーレートに）
-  strip.begin();                // LED初期化
-  strip.setBrightness(BRIGHTNESS);
-  strip.show();                 // 初期状態で全消灯
-  MIDI.begin(MIDI_CHANNEL_1);   // MIDIチャンネル1で開始
+  Serial.begin(115200);
+  FastLED.addLeds<WS2812, DATA_PIN, GRB>(leds, NUM_LEDS);
+  FastLED.clear();
+  FastLED.show();
+
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
 }
 
 void loop() {
-  handleSerial();               // FFTデータ受信＆LED表示
-  handleUltrasonic();           // 超音波センサー処理＆MIDI送信
+  handleLEDSerial();
+  handleUltrasonicMIDI();
 }
 
-// --- シリアルからFFTデータを受信し、LEDに表示 ---
-void handleSerial() {
+void handleLEDSerial() {
   while (Serial.available()) {
-    char c = Serial.read();
-    if (c == '\n') {
-      parseData(input);        // データを数値に変換
-      input = "";
-      displayBars();           // LED表示更新
+    char inChar = (char)Serial.read();
+    if (inChar == '\n') {
+      processInput(inputString);
+      inputString = "";
+      receiving = false;
     } else {
-      input += c;
+      inputString += inChar;
+      receiving = true;
     }
   }
 }
 
-// --- 超音波センサーで距離を測定し、MIDIノートを送信 ---
-void handleUltrasonic() {
-  if (millis() - lastPingTime > pingInterval) {
-    lastPingTime = millis();
-    int distance = sonar.ping_cm();
+void processInput(String data) {
+  if (data.charAt(0) != 'L') return;
 
-    if (distance > 0) {
-      int note = getNoteFromDistance(distance);
-
-      if (note != lastNote) {
-        if (lastNote != -1) {
-          MIDI.sendNoteOff(lastNote, 0, 1); // 前のノートをオフ
-        }
-        MIDI.sendNoteOn(note, 100, 1);      // 新しいノートをオン
-        lastNote = note;
-      }
-    } else {
-      if (lastNote != -1) {
-        MIDI.sendNoteOff(lastNote, 0, 1);   // 手が離れたらノートオフ
-        lastNote = -1;
-      }
-    }
-  }
-}
-
-// --- 受信した文字列を数値配列に変換 ---
-void parseData(String data) {
+  int values[NUM_LEDS];
   int index = 0;
-  int lastIndex = 0;
-  for (int i = 0; i < 16; i++) {
-    index = data.indexOf(',', lastIndex);
-    if (index == -1 && i < 15) return; // データ不足なら無視
-    String val = (i < 15) ? data.substring(lastIndex, index) : data.substring(lastIndex);
-    levels[i] = constrain(val.toInt() / 4, 0, 32); // 0〜255 → 0〜32にスケーリング
-    lastIndex = index + 1;
-  }
-}
+  int lastComma = 0;
 
-// --- LEDマトリクスにバーを表示 ---
-void displayBars() {
-  strip.clear();
-
-  for (int x = 0; x < 16; x++) {
-    int height = levels[x];
-    for (int y = 0; y < height; y++) {
-      int pixelIndex = getPixelIndex(x, y);
-      uint32_t color = getColorForLevel(y);
-      strip.setPixelColor(pixelIndex, color);
+  for (int i = 2; i < data.length(); i++) {
+    if (data.charAt(i) == ',' || i == data.length() - 1) {
+      String numStr = data.substring(lastComma + 1, (data.charAt(i) == ',') ? i : i + 1);
+      values[index] = numStr.toInt();
+      index++;
+      lastComma = i;
+      if (index >= NUM_LEDS) break;
     }
   }
 
-  strip.show();
-}
-
-// --- ジグザグ配線に対応したインデックス計算 ---
-int getPixelIndex(int x, int y) {
-  if (x % 2 == 0) {
-    return x * 32 + y;
-  } else {
-    return x * 32 + (31 - y);
+  for (int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = CHSV(i * 8, 255, values[i]);  // 色相を細かく分けてカラフルに
   }
+  FastLED.show();
 }
 
-// --- 高さに応じた色を生成（グラデーション） ---
-uint32_t getColorForLevel(int level) {
-  int r = map(level, 0, 31, 0, 255);
-  int g = 255 - abs(16 - level) * 8;
-  int b = 255 - r;
-  return strip.Color(r, g, b);
-}
+void handleUltrasonicMIDI() {
+  long duration, distance;
 
-// --- 距離に応じたMIDIノートを返す ---
-int getNoteFromDistance(int d) {
-  if (d < 6) return 60;     // C4
-  else if (d < 10) return 62; // D4
-  else if (d < 14) return 64; // E4
-  else if (d < 18) return 65; // F4
-  else if (d < 22) return 67; // G4
-  else if (d < 26) return 69; // A4
-  else return 71;            // B4
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+
+  duration = pulseIn(ECHO_PIN, HIGH, 20000); // タイムアウト20ms
+  distance = duration * 0.034 / 2;
+
+  // 0cmが出たら前回の値を使う
+  if (distance == 0) {
+    distance = lastDistance;
+  } else {
+    lastDistance = distance;
+  }
+
+  // 距離を表示（デバッグ用）
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  if (distance > 5 && distance < 50 && !noteOnSent) {
+    currentNote = map(distance, 5, 50, 72, 48);  // C5〜C3
+    Serial.write((byte)(0x90));  // Note On
+    Serial.write(currentNote);
+    Serial.write((byte)100);
+    noteOnSent = true;
+    lastNoteTime = millis();
+  }
+
+  if (noteOnSent && millis() - lastNoteTime > 300) {
+    Serial.write((byte)(0x80));  // Note Off
+    Serial.write(currentNote);
+    Serial.write((byte)0);
+    noteOnSent = false;
+  }
 }
