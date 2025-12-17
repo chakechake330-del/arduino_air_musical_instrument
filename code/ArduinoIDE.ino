@@ -1,6 +1,6 @@
 #include <FastLED.h>
 
-#define NUM_LEDS 32           // LEDの数（Processingのbandsと合わせる）
+#define NUM_LEDS           // LEDの数（Processingのbandsと合わせる）
 #define DATA_PIN 6            // LEDのデータピン
 
 #define TRIG_PIN 9            // 超音波センサーのTRIGピン
@@ -87,11 +87,6 @@ void handleUltrasonicMIDI() {
   } else {
     lastDistance = distance;
   }
-
-  // 距離を表示（デバッグ用）
-  Serial.print("Distance: ");
-  Serial.print(distance);
-  Serial.println(" cm");
 
   if (distance > 5 && distance < 50 && !noteOnSent) {
     currentNote = map(distance, 5, 50, 72, 48);  // C5〜C3
