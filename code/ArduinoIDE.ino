@@ -12,8 +12,8 @@
 Adafruit_NeoPixel strip(NUM_PIXELS, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 // --- 超音波センサー設定 ---
-#define TRIG_PIN 10
-#define ECHO_PIN 9
+#define TRIG_PIN 9
+#define ECHO_PIN 10
 #define MAX_DISTANCE 30         // 測定最大距離（cm）
 
 NewPing sonar(TRIG_PIN, ECHO_PIN, MAX_DISTANCE);
