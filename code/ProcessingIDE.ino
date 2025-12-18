@@ -26,7 +26,7 @@ void setup() {
   myPort = new Serial(this, portName, 115200);
 
   MidiBus.list();  // 利用可能なMIDIポートを確認
-  midi = new MidiBus(this, -1, "IAC Driver Bus 1");  // 出力先を指定
+  midi = new MidiBus(this, -1, "IAC Bus 1");  // 出力先を指定
 }
 
 void draw() {
