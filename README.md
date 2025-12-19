@@ -1,6 +1,6 @@
 # 卒業制作2025
-## 1. 概要 
-  超音波センサー × Logic Pro × LEDマトリクスで構成された、 手の動きで音を奏で、音に合わせてLEDが光る“エアー楽器”です。  
+## 1.  概要 
+  超音波センサー × Logic Pro × LEDマトリクスで構成された、 手の動きで音を奏で、音に合わせてLEDが光る **エアー楽器** です。  
 
 ### *主な機能*
 
@@ -26,7 +26,7 @@
 3.  Logic Proの音声出力 を BlackHole 経由で Processing に渡す
 4.  Processing がFFT解析を行い、LEDマトリクスにスペクトラムを表示
 
-## 2. 仕様書
+## 2.  仕様書
 
 ### *配線図*
 > ※この配線図はFritzingの都合により、以下の部品を代用品で表現しています
@@ -51,7 +51,7 @@
 ### 使用ツール・環境
 
 - **Arduino IDE**（統合開発環境 / マイコン用コードの開発・書き込み）
-- **Processing**（ビジュアルプログラミング環境 / 音声解析・シリアル通信・LED制御）
+- **Processing バージョン：3.5.4（推奨）**（ビジュアルプログラミング環境 / 音声解析・シリアル通信・LED制御）
 - **Logic Pro**（DAW / MIDI受信と音声出力）
 - **BlackHole**（仮想オーディオルーティング / ProcessingでLogic Proの音を取得）
 - **Audio MIDI設定（IACドライバ）**（Mac標準 / 仮想MIDIポートの作成・接続）
@@ -66,44 +66,86 @@
 - **TheMidiBus**(MIDIノート送信用ライブラリ)
 - **processing.serial**(Arduinoとのシリアル通信)
 
-## 3. フローチャート
+## 3.  フローチャート
+
+###  *[Arduino側]*
 
 ```mermaid
 flowchart TD
-    A[起動] --> B[超音波センサー初期化]
-    B --> C[LEDマトリクス初期化]
-    C --> D[シリアル通信開始]
-    D --> E[loop開始]
+    A[起動] --> B[センサーとLEDの初期化]
+    B --> C[シリアル通信開始]
+    C --> D[loop開始]
 
-    E --> F{手の動きあり？}
-    F -- Yes --> G[距離に応じてMIDIノート送信]
-    F -- No --> H[何もしない]
+    D --> E[超音波センサーで距離を測定]
+    E --> F[距離をcm単位で計算]
+    F --> G[距離をシリアルでPCに送信]
 
-    G --> I[FFTデータを受信]
-    H --> I
-
-    I --> J[LEDマトリクスにスペクトラム表示]
-    J --> E
-
+    G --> H[PCからLEDデータを受信]
+    H --> I[データを読み取り、LEDの光り方に変換]
+    I --> J[縦の位置に応じた色でLEDを点灯]
+    J --> D
 ```
 
-## 4. 使用ツールの詳細
+###  *[Processing側]*
 
-### **Processing** 
-Javaベースのビジュアルプログラミング環境。 
-このプロジェクトでは、Logic Proの音声をリアルタイムにFFT解析し、LEDマトリクスにスペクトラム表示する役割を担います。 
-また、Arduinoとのシリアル通信を通じて、LED制御データを送信します。
+```mermaid
+flowchart TD
+    A[起動] --> B[音声入力とFFTの初期化]
+    B --> C[シリアル通信とMIDIポートの初期化]
+    C --> D[ループ開始]
 
-### **BlackHole**  
-BlackHoleは、macOS用の仮想オーディオドライバです。  
-通常、アプリの音声はスピーカーに直接送られますが、BlackHoleを使うことで、その音声を別のアプリ（この場合はProcessing）に受け渡すことができます。 
+    D --> E[Logic Proの音声を取得（BlackHole経由）]
+    E --> F[FFT解析を実行]
+    F --> G[音の変化を記録]
+    G --> H[LEDマトリクス用データを生成]
+    H --> I[ArduinoにLEDデータを送信]
+
+    D --> J[Arduinoから距離データを受信]
+    J --> K[前回の距離と比較]
+    K --> L{変化が一定以上？}
+    L -- Yes --> M[MIDIノートを計算して送信]
+    L -- No --> N[スキップ]
+
+    M --> D
+    N --> D
+```
+
+
+## 4.  使用ツールの詳細
+
+### 🔹**Processing** 
+Javaベースのビジュアルプログラミング環境。   
+このプロジェクトでは、Logic Proの音声をリアルタイムにFFT解析し、LEDマトリクスにスペクトラム表示する役割を担います。   
+また、Arduinoとのシリアル通信を通じて、LED制御データを送信します。  
+
+### 🔹**BlackHole**  
+BlackHoleは、macOS用の仮想オーディオドライバです。    
+通常、アプリの音声はスピーカーに直接送られますが、BlackHoleを使うことで、その音声を別のアプリ（この場合はProcessing）に受け渡すことができます。
 このプロジェクトでは、Logic Proで鳴った音をProcessingに届ける“音の受け渡し役”としてBlackHoleを使用しています。
 
-### **Audio MIDI設定（IACドライバ）**（macOS標準機能）  
-macOS標準のMIDIルーティングツール。 
+### 🔹**Audio MIDI設定（IACドライバ）**（macOS標準機能）  
+macOS標準のMIDIルーティングツール。   
 ArduinoからのMIDIノートをLogic Proに送信するための仮想MIDIポートを作成します。
 
-## 5. 参考サイト
+
+## 5.  工夫ポイント
+
+### ◎*ArduinoとProcessingのリアルタイムやりとり*  
+ArduinoとProcessingの間で、
+Arduino → Processing：距離センサーのデータを送信  
+Processing → Arduino：LEDの表示データを送信  
+このように双方向でやり取りすることで、リアルタイムなインタラクションを実現しています。
+
+### ◎*リアルタイムFFT解析*  
+Logic Proで再生された音をBlackHoleを使ってProcessingに取り込み、 その場で周波数解析（FFT）を行います。  
+音の変化に応じて、LEDの光り方をすぐに変化させています。
+
+### ◎*距離変化のしきい値処理*   
+手の位置がほとんど動いていないときは、MIDIノートを送らないようにしています。  
+これにより、意図しない連打やノイズを防ぎ、自然な演奏感を保っています。
+
+
+## 6.  参考サイト
 
 - [基本プロジェクト 超音波](https://docs.sunfounder.com/projects/elite-explorer-kit/ja/latest/basic_projects/06_basic_ultrasonic_sensor.html)
 - [【Arduino】シリアルLED（WS2812B）を制御する](https://araisun.com/arduino-serial-led.html)
