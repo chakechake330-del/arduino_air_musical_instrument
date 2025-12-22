@@ -2,6 +2,9 @@
 ## 1.  概要 
   超音波センサー × Logic Pro × LEDマトリクスで構成された、 手の動きで音を奏で、音に合わせてLEDが光る **エアー楽器**  
 
+## 2.  デモ動画
+  [![Demo](https://img.youtube.com/vi/44h90E0diM4/0.jpg)](https://youtu.be/44h90E0diM4)
+
 ### *主な機能*
 
 - **超音波モジュール**  
@@ -26,7 +29,7 @@
 3.  Logic Proの音声出力 を BlackHole 経由で Processing に渡す
 4.  Processing がFFT解析を行い、LEDマトリクスにスペクトラムを表示
 
-## 2.  仕様書
+## 3.  仕様書
 
 ### *配線図*
 > ※この配線図はFritzingの都合により、以下の部品を代用品で表現しています
@@ -66,7 +69,7 @@
 - **TheMidiBus**(MIDIノート送信用ライブラリ)
 - **processing.serial**(Arduinoとのシリアル通信)
 
-## 3.  フローチャート
+## 4.  フローチャート
 
 ###  *[Arduino側]*
 
@@ -111,7 +114,7 @@ flowchart TD
 ```
 
 
-## 4.  使用ツールの詳細
+## 5.  使用ツールの詳細
 
 ### 🔹**Processing** 
 Javaベースのビジュアルプログラミング環境。   
@@ -128,7 +131,7 @@ macOS標準のMIDIルーティングツール。
 ArduinoからのMIDIノートをLogic Proに送信するための仮想MIDIポートを作成します。
 
 
-## 5.  工夫ポイント
+## 6.  工夫ポイント
 
 ### ◎*ArduinoとProcessingのリアルタイムやりとり*  
 ArduinoとProcessingの間で、
@@ -145,7 +148,7 @@ Logic Proで再生された音をBlackHoleを使ってProcessingに取り込み�
 これにより、意図しない連打やノイズを防ぎ、自然な演奏感を保っています。
 
 
-## 6.  参考サイト
+## 7.  参考サイト
 
 - [基本プロジェクト 超音波](https://docs.sunfounder.com/projects/elite-explorer-kit/ja/latest/basic_projects/06_basic_ultrasonic_sensor.html)
 - [【Arduino】シリアルLED（WS2812B）を制御する](https://araisun.com/arduino-serial-led.html)
