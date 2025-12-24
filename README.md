@@ -48,7 +48,7 @@
 
 ### *回路図*
 
-![回路図](images_and_videos/Arduino_drum_回路図.png)
+![回路図]()
 
 ### *使用モジュールとピン*
 
