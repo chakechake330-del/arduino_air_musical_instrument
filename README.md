@@ -39,7 +39,7 @@
 1.  Arduino Uno R4 WiFi が超音波センサーで距離を読み取り
 2.  Logic Pro が IAC Driver 経由でMIDI信号を受信し、ソフト音源を再生
 3.  Logic Proの音声出力 を PC内部の「見えないケーブル（BlackHole）」を通してへ送ります
-4.  Processing がFFT解析を行い、その情報を再びArduinoへ送り返してLEDを光らせます
+4.   がFFT解析を行い、その情報を再びArduinoへ送り返してLEDを光らせます
 
 ## 3.  仕様書
 
@@ -67,16 +67,24 @@
 ### 使用ツール・環境
 
 - **Arduino IDE**（統合開発環境 / マイコン用コードの開発・書き込み）
-- **Processing バージョン：3.5.4（推奨）**（ビジュアルプログラミング環境 / 音声解析・シリアル通信・LED制御）
 - **Logic Pro**（DAW / MIDI受信と音声出力）
 - **BlackHole**（仮想オーディオルーティング / ProcessingでLogic Proの音を取得）
 - **Audio MIDI設定（IACドライバ）**（Mac標準 / 仮想MIDIポートの作成・接続）
 
 ### Arduino使用ライブラリ
 
-- **Adafruit_NeoPixel**
+| ライブラリ名 | 標準 / 外部 | 用途・詳細 |
+| :--- | :--- | :--- |
+| **Adafruit_NeoPixel** | 外部ライブラリ | **LED制御**<br>WS2812B LEDマトリクスの制御 |
+
 
 ### IntelliJ IDEA使用ライブラリ
+
+| ライブラリ名 | 標準 / 外部 | 用途・詳細 |
+| :--- | :--- | :--- |
+| **jSerialComm** | 外部ライブラリ | **Arduinoとのシリアル通信**<br>距離データの受信、およびLED制御データの送信に使用。 |
+| **Java Sound API** | 標準ライブラリ | **MIDI信号・音声処理**<br>IACドライバと併用し、MIDI信号の送信や音声の取得を管理。 |
+| **FFT（JTransforms等）** | 外部または自作 | **FFT解析**<br>音声をリアルタイムで周波数解析し、スペクトラム情報を取得。 |
 
 ## 4.  システムブロック図
 ![ブロック図](images_and_videos/mermaid-diagram-2025-12-22-172352.png)
@@ -128,15 +136,13 @@ flowchart TD
 
 ## 6.  使用ツールの詳細
 
-### 🔹**Processing** 
-Javaベースのビジュアルプログラミング環境。   
-このプロジェクトでは、Logic Proの音声をリアルタイムにFFT解析し、LEDマトリクスにスペクトラム表示する役割を担います。   
-また、Arduinoとのシリアル通信を通じて、LED制御データを送信します。  
+### 🔹**IntelliJ IDEA** 
+
 
 ### 🔹**BlackHole**  
 BlackHoleは、macOS用の仮想オーディオドライバです。    
-通常、アプリの音声はスピーカーに直接送られますが、BlackHoleを使うことで、その音声を別のアプリ（この場合はProcessing）に受け渡すことができます。
-このプロジェクトでは、Logic Proで鳴った音をProcessingに届ける“音の受け渡し役”としてBlackHoleを使用しています。
+通常、アプリの音声はスピーカーに直接送られますが、BlackHoleを使うことで、その音声を別のアプリ（この場合はIntelliJ）に受け渡すことができます。
+このプロジェクトでは、Logic Proで鳴った音をIntelliJに届ける“音の受け渡し役”としてBlackHoleを使用しています。
 
 ### 🔹**Audio MIDI設定（IACドライバ）**（macOS標準機能）  
 macOS標準のMIDIルーティングツール。   
@@ -145,19 +151,15 @@ ArduinoからのMIDIノートをLogic Proに送信するための仮想MIDIポ�
 
 ## 7.  工夫ポイント
 
-### ◎*ArduinoとProcessingのリアルタイムやりとり*  
-ArduinoとProcessingの間で、
-Arduino → Processing：距離センサーのデータを送信  
-Processing → Arduino：LEDの表示データを送信  
+### ◎*ArduinoとIntelliJのリアルタイムやりとり*  
+ArduinoとIntelliJの間で、
+Arduino → IntelliJ：距離センサーのデータを送信  
+IntelliJ → Arduino：LEDの表示データを送信  
 このように双方向でやり取りすることで、動きや音にすぐ反応する仕組みを実現しています。
 
 ### ◎*リアルタイムFFT解析*  
-Logic Proで再生された音をBlackHoleを使ってProcessingに取り込み、 その場で周波数解析（FFT）を行います。  
+Logic Proで再生された音をBlackHoleを使ってIntelliJに取り込み、 その場で周波数解析（FFT）を行います。  
 音の変化に応じて、LEDの光り方をすぐに変化させています。
-
-### ◎*距離変化のしきい値処理*   
-手の位置がほとんど動いていないときは、MIDIノートを送らないようにしています。  
-これにより、意図しない連打やノイズを防ぎ、自然な演奏感を保っています。
 
 
 ## 8.  参考サイト
