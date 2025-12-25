@@ -23,10 +23,10 @@
   センサーの前に手をかざすと、距離に応じたMIDIノートを生成し、Logic Proでドラム音や効果音を再生します。
 　
 - **Logic Pro**  
-  ArduinoからのMIDI信号をLogic Proで受信し、ソフトウェア音源を鳴らす
+  ArduinoからのMIDI信号をLogic Proで受信し、ソフトウェア音源を鳴らします
 
 - **FFT解析（PC側）**  
-  Logic Proの音声出力をPCで取得し、リアルタイムFFT解析を実行する
+  Logic Proの音声出力をPCで取得し、リアルタイムFFT解析を実行します
 
 - **WS2812B LEDマトリクス**  
   解析結果に基づき、8×32のLEDマトリクスにスペクトラムアナライザを表示します。
@@ -36,10 +36,15 @@
 
 ### *システムデータフロー*
 
-1.  Arduino Uno R4 WiFi が超音波センサーで距離を読み取り
-2.  Logic Pro が IAC Driver 経由でMIDI信号を受信し、ソフト音源を再生
-3.  Logic Proの音声出力 を PC内部の「見えないケーブル（BlackHole）」を通してへ送ります
-4.   がFFT解析を行い、その情報を再びArduinoへ送り返してLEDを光らせます
+>このプロジェクトでは、以下の4つのステップでデータがリアルタイムに循環しています。
+
+1.  Arduino Uno R4 WiFiが超音波センサーを用いて、手との距離をリアルタイムで読み取ります。
+
+2.  読み取った距離情報をMIDI信号に変換し、IAC Driver 経由で Logic Pro へ送信してソフト音源を再生します。
+
+3.  Logic Proから出力された音声を、仮想オーディオドライバ(BlackHole) を通してPC内の Javaアプリケーション（IntelliJ IDEA） へ送ります。
+
+4.  Javaアプリケーション が音声をFFT解析し、その解析結果をシリアル通信で再びArduinoへ送信することで、LEDマトリクス を点灯させます。
 
 ## 3.  仕様書
 
@@ -56,7 +61,6 @@
 
 ### *使用モジュールとピン*
 
-
 | モジュール名                 | 用途                                | 使用ピン（Arduino Uno R4 WiFi）  |
 |---------------------------|-------------------------------------|------------------------------|
 | 超音波距離センサー（HC-SR04など） | 手の距離を測定し、MIDIノートを決定        |      TRIG: D10 / ECHO: D9    |
@@ -66,10 +70,13 @@
 
 ### 使用ツール・環境
 
-- **Arduino IDE**（統合開発環境 / マイコン用コードの開発・書き込み）
-- **Logic Pro**（DAW / MIDI受信と音声出力）
-- **BlackHole**（仮想オーディオルーティング / ProcessingでLogic Proの音を取得）
-- **Audio MIDI設定（IACドライバ）**（Mac標準 / 仮想MIDIポートの作成・接続）
+| ツール名 | 用途 | 詳細 |
+| :--- | :--- | :--- |
+| **IntelliJ IDEA** | Java開発環境 | メインのアプリケーション開発。FFT解析やシリアル通信の制御プログラムを作成。 |
+| **Arduino IDE** | マイコン開発環境 | Arduino Uno R4 WiFiへのコード開発および書き込みに使用。 |
+| **Logic Pro** | DAW（音楽制作ソフト） | MIDI信号を受信し、ドラムやシンセサイザーなどの音源を再生。 |
+| **BlackHole** | 仮想オーディオドライバ | Logic Proの音声をJavaアプリへ送るための仮想配線として使用。 |
+| **Audio MIDI設定** | 仮想MIDIツール | Mac標準機能（IACドライバ）を使用し、仮想MIDIポートを作成。 |
 
 ### Arduino使用ライブラリ
 
@@ -87,7 +94,7 @@
 | **FFT（JTransforms等）** | 外部または自作 | **FFT解析**<br>音声をリアルタイムで周波数解析し、スペクトラム情報を取得。 |
 
 ## 4.  システムブロック図
-![ブロック図](images_and_videos/mermaid-diagram-2025-12-25-113710.png)
+![ブロック図](images_and_videos/mermaid-diagram-2025-12-22-172352.png)
 
 ## 5.  フローチャート
 
@@ -95,42 +102,77 @@
 
 ```mermaid
 flowchart TD
-    A[起動] --> B["初期化<br/>(センサー準備 / <b>FastLED</b>設定)"]
-    B --> C[PCとの通信開始]
-    C --> D[メインループ開始]
+    %% 起動プロセス
+    START([システム起動]) --> INIT[初期化<br/>センサー・LEDの準備]
+    INIT --> CONNECT[PCとの通信開始]
+    
+    %% メイン処理の枠組み
+    subgraph LOOP [リアルタイム処理ループ]
+        direction TB
+        
+        %% 入力セクション
+        SENSOR[超音波センサーで距離計測]
+        CALC[距離をcmデータに変換]
+        SEND_PC[PCへ送信<br/><b>音を鳴らすためのデータ</b>]
+        
+        %% 受信・出力セクション
+        RECV_PC[PCからデータ受信<br/><b>音の解析結果</b>]
+        CONV_LED[LED表示データに変換]
+        LIGHT[LEDマトリクス点灯]
+        
+        %% 流れの定義
+        SENSOR --> CALC
+        CALC --> SEND_PC
+        SEND_PC --> RECV_PC
+        RECV_PC --> CONV_LED
+        CONV_LED --> LIGHT
+    end
+    
+    %% ループの戻り
+    LIGHT -.->|高速でループ（繰り返し）| SENSOR
 
-    D --> E["距離計測<br/>(超音波センサー)"]
-    E --> F["距離の計算<br/>(音速からcmを算出)"]
-    F --> G["PCへ距離を送信<br/>(シリアル通信)"]
-
-    G --> H["PCから映像データを受信<br/>(シリアル通信)"]
-    H --> I["データの解析<br/>(輝度情報への変換)"]
-    I --> J["LEDマトリクス点灯<br/><b>【FastLEDライブラリ】</b>"]
-    J --> D
+    %% デザインのカスタマイズ
+    style START fill:#f9f,stroke:#333
+    style SEND_PC fill:#fff9c4,stroke:#fbc02d
+    style RECV_PC fill:#e1f5fe,stroke:#0288d1
+    style LOOP fill:#fafafa,stroke:#999,stroke-dasharray: 5 5
 ```
 
-###  *[音響解析・映像生成(Processing側)]*
+###  *[音響解析・映像生成(IntelliJ IDEA側)]*
 
 ```mermaid
 flowchart TD
-    A[起動] --> B["音声解析の準備<br/><b>【Minimライブラリ】</b>"]
-    B --> C["通信の準備<br/>(シリアル / <b>TheMidiBus</b>)"]
-    C --> D[メインループ開始]
+    %% 全体の流れを定義
+    START([システム起動]) --> INIT[初期化: 音声・通信・MIDI]
+    INIT --> LOOP_START{リアルタイム処理}
 
-    D --> E["Logic Proの音を取得<br/><b>(BlackHole経由)</b>"]
-    E --> F["周波数解析<br/><b>【FFT実行】</b>"]
-    F --> G["音の変化(スペクトラム)を記録"]
-    G --> H["LED用の映像データを生成"]
-    H --> I["コントローラ(arduino)へ映像送信<br/>(シリアル通信)"]
+    %% 音声解析セクション
+    subgraph AudioAnalysis [音声の可視化処理]
+        LISTEN[Logic Proの音を聴く] --> FFT[FFT解析: 周波数に分解]
+        FFT --> LED_DATA[LED用の表示データを作成]
+    end
 
-    D --> J["超音波センサーから距離を受信"]
-    J --> K["前回の距離と比較"]
-    K --> L{一定以上の動き？}
-    L -- Yes --> M["MIDI信号を送信<br/><b>【TheMidiBusライブラリ】</b>"]
-    L -- No --> N[処理スキップ]
+    %% センサーとMIDIセクション
+    subgraph SensorMidi [楽器としての制御]
+        RECV[距離データを受信] --> CHECK{動きがあるか?}
+        CHECK -- Yes --> MIDI[MIDI送信: 音を鳴らす]
+        CHECK -- No --> SKIP[待機]
+    end
 
-    M --> D
-    N --> D
+    %% 統合と送信
+    LOOP_START --> LISTEN
+    LOOP_START --> RECV
+    
+    LED_DATA --> SEND[Arduinoへ点灯指示を送信]
+    MIDI --> SEND
+    SKIP --> SEND
+    
+    SEND -->|最新の状態へ更新| LOOP_START
+
+    %% 見栄えの調整
+    style AudioAnalysis fill:#e1f5fe,stroke:#01579b
+    style SensorMidi fill:#fff9c4,stroke:#fbc02d
+    style START fill:#f9f,stroke:#333
 ```
 
 
