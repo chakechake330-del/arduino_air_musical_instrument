@@ -1,4 +1,3 @@
-# 卒業制作2025
 ![デモ画像](images_and_videos/IMG_0586.jpeg)
 
 ## 1.  概要 
