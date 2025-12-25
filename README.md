@@ -14,7 +14,9 @@
 本プロジェクトでは手の距離をこのMIDI信号に翻訳して音を鳴らしています
 
 ## 2.  デモ動画
-[![Demo](https://youtu.be/bGjGJwbTedI)
+
+[![Demo Video](https://img.youtube.com/vi/bGjGJwbTedI/0.jpg)](https://youtu.be/bGjGJwbTedI)
+
 ### *主な機能*
 
 - **超音波モジュール**  
