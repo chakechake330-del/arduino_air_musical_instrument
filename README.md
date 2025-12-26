@@ -65,7 +65,7 @@
 | 超音波距離センサー（HC-SR04など） | 手の距離を測定し、MIDIノートを決定        |      TRIG: D10 / ECHO: D9    |
 | WS2812B LEDマトリクス（8×32）  | スペクトラムアナライザ表示               | データピン: D6                  |
 | Arduino Uno R4 WiFi         | 全体制御（MIDI送信・LED制御）         | -                             |
-| PC（Logic Pro + Processing）     | 音声再生・FFT解析・LED制御         | USBシリアル通信                  |
+| PC（Logic Pro + IntelliJ）     | 音声再生・FFT解析・LED制御         | USBシリアル通信                  |
 
 ### 使用ツール・環境
 
